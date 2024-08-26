@@ -2,7 +2,7 @@
   <nav>
     <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link> |
-    <router-link to="/about">About</router-link>
+    <router-link to="/products">Product</router-link>
   </nav>
   <router-view/>
 </template>
@@ -14,6 +14,9 @@
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 nav {
