@@ -6,7 +6,7 @@
           <div class="row justify-content-center text-center">
             <div class="col-md-8 col-lg-6">
               <div class="header2">
-                <h2>Healthy juice, Healthy you!</h2>
+                <h2>Juice and Smoothies for a Healthier You!</h2>
               </div>
             </div>
           </div>
@@ -34,6 +34,12 @@
               <!-- Filter by Category Option -->
               <select class="form-select" aria-label="Filter by Category" v-model="filterCategory">
                 <option value="">Filter by Category</option>
+                <option value="Detox">Detox</option>
+                <option value="Immune Boost">Immune Boost</option>
+                <option value="Energize">Energizer</option>
+              </select>
+              <select class="form-select" aria-label="Filter by Type" v-model="filterType">
+                <option value="">Filter by Type</option>
                 <option value="Juices">Juice</option>
                 <option value="Smoothies">Smoothies</option>
               </select>
@@ -46,9 +52,8 @@
               :key="product.id"
               class="col-md-6 col-lg-4 col-xl-3"
             >
-              <div :id="'product-' + product.id" class="single-product">
-                <div class="part-1">
-                  <span v-if="product.discount" class="discount">{{ product.discount }}% off</span>
+              <div :id="'product-' + product.prodID" class="single-product">
+                <div class="part-1" :style="getProductStyle(product)">
                   <ul>
                     <li><a href="#"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
                       <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
@@ -65,9 +70,8 @@
                   </ul>
                 </div>
                 <div class="part-2">
-                  <h3 class="product-title">{{ product.title }}</h3>
-                  <h4 v-if="product.oldPrice" class="product-old-price">R{{ product.oldPrice }}</h4>
-                  <h4 class="product-price">R{{ product.price }}</h4>
+                  <h3 class="product-title">{{ product.prodName }}</h3>
+                  <h4>R{{ product.price }}</h4>
                 </div>
               </div>
             </div>
@@ -84,27 +88,17 @@
         searchQuery: '',
         sortOption: '',
         filterCategory: '',
-        products: [
-          { id: 1, title: 'Juice Name', category: 'Juice', price: 49.99, oldPrice: 79.99, discount: 15 },
-          { id: 2, title: 'Juice Name', category: 'Smoothie', price: 29.99 },
-          { id: 3, title: 'Juice Name', category: 'Juice', price: 39.99, oldPrice: 59.99, discount: 10 },
-          { id: 4, title: 'Juice Name', category: 'Smoothie', price: 19.99 },
-          { id: 5, title: 'Juice Name', category: 'Smoothie', price: 49.99, oldPrice: 79.99, discount: 15 },
-          { id: 6, title: 'Juice Name', category: 'Juice', price: 29.99 },
-          { id: 7, title: 'Juice Name', category: 'Juice', price: 39.99, oldPrice: 59.99, discount: 10 },
-          { id: 8, title: 'Juice Name', category: 'Smoothie', price: 19.99 },
-          // Add more products as needed
-        ],
+        filterType: ''
       };
     },
     computed: {
       filteredAndSortedProducts() {
-        let filteredProducts = this.products;
+        let filteredProducts = this.$store.state.products;
   
         // Filter by search query
         if (this.searchQuery) {
           filteredProducts = filteredProducts.filter(product =>
-            product.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+            product.prodName.toLowerCase().includes(this.searchQuery.toLowerCase())
           );
         }
   
@@ -114,6 +108,12 @@
             product.category === this.filterCategory
           );
         }
+        // Filter by type
+        if (this.filterType) {
+          filteredProducts = filteredProducts.filter(product =>
+            product.type === this.filterType
+          );
+        }
   
         // Sort products
         if (this.sortOption === 'priceAsc') {
@@ -121,12 +121,30 @@
         } else if (this.sortOption === 'priceDesc') {
           filteredProducts.sort((a, b) => b.price - a.price);
         } else if (this.sortOption === 'newest') {
-          filteredProducts.sort((a, b) => b.id - a.id); // Assuming higher ID means newer product
+          filteredProducts.sort((a, b) => b.prodID - a.prodID); // Assuming higher ID means newer product
         }
   
         return filteredProducts;
-      },
+      }
     },
+    methods:{
+        getProducts(){
+            this.$store.dispatch('getProducts')
+        },
+        getProductStyle(product){
+            return {
+              backgroundImage: `url(${product.image})`,
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'cover',
+              transition: 'all 0.3s'
+            }
+        }
+    },
+    mounted(){
+        this.getProducts()
+
+    }
   };
   </script>
 
@@ -224,51 +242,6 @@ a:hover {
 		transition: all 0.3s;
 }
 
-.section-products .single-product:hover .part-1::before {
-		transform: scale(1.2,1.2) rotate(5deg);
-}
-
-.section-products #product-1 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443482/pexels-photo-4443482.jpeg?auto=compress&cs=tinysrgb&w=600") no-repeat center;
-    background-size: cover;
-		transition: all 0.3s;
-}
-
-.section-products #product-2 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443482/pexels-photo-4443482.jpeg?auto=compress&cs=tinysrgb&w=600") no-repeat center;
-    background-size: cover;
-}
-
-.section-products #product-3 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443486/pexels-photo-4443486.jpeg?auto=compress&cs=tinysrgb&w=600") no-repeat center;
-    background-size: cover;
-}
-
-.section-products #product-4 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443486/pexels-photo-4443486.jpeg?auto=compress&cs=tinysrgb&w=600") no-repeat center;
-    background-size: cover;
-}
-.section-products #product-5 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443493/pexels-photo-4443493.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load") no-repeat center;
-    background-size: cover;
-		transition: all 0.3s;
-}
-
-.section-products #product-6 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443493/pexels-photo-4443493.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load") no-repeat center;
-    background-size: cover;
-}
-
-.section-products #product-7 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443493/pexels-photo-4443493.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load") no-repeat center;
-    background-size: cover;
-}
-
-.section-products #product-8 .part-1::before {
-    background: url("https://images.pexels.com/photos/4443493/pexels-photo-4443493.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load") no-repeat center;
-    background-size: cover;
-}
-
 .section-products .single-product .part-1 .discount,
 .section-products .single-product .part-1 .new {
     position: absolute;
@@ -330,24 +303,6 @@ a:hover {
 .section-products .single-product .part-2 h4 {
     display: inline-block;
     font-size: 1rem;
-}
-
-.section-products .single-product .part-2 .product-old-price {
-    position: relative;
-    padding: 0 7px;
-    margin-right: 2px;
-    opacity: 0.6;
-}
-
-.section-products .single-product .part-2 .product-old-price::after {
-    position: absolute;
-    content: "";
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background-color: #444444;
-    transform: translateY(-50%);
 }
 
   </style>
